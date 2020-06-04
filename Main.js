@@ -6,26 +6,21 @@ import Top from './Top';
 import Bottom from './Bottom';
 
 import { observer } from "mobx-react";
-import { observable } from "mobx"
-
-const state = observable({
-    tracks:[],
-    playingIndex:0,
-});
 
 class Main extends Component {
-
-    onUpdateProps = (tracks, index) => {
-      state.tracks = tracks;
-      state.playingIndex = index;
-    };
-
     render(){
-        const { navigation } = this.props;
+        const { record, navigation, pIndex, callBack$Bottom } = this.props;
         return(
             <View style={styles.container}>
-                <Top navigation={ navigation } pIndex={ state.playingIndex } tracks={ state.tracks } />
-                <Bottom navigation={ navigation } state={ state }  onUpdate={this.onUpdateProps} />
+                <Top navigation={ navigation }
+                     record={ record }
+                     pIndex={ pIndex }
+                />
+                <Bottom record={ record }
+                        pIndex={ pIndex }
+                        navigation={ navigation }
+                        callBack$Bottom = { callBack$Bottom }
+                />
             </View>
         );
     }

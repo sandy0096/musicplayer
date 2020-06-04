@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Text, View, ImageBackground, PermissionsAndroid, TouchableOpacity, Animated } from 'react-native';
+
 import styles from './Styles';
 
 import { observer } from "mobx-react";
@@ -8,14 +9,10 @@ import { observable } from "mobx";
 import IconSimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import IconFontAwesome from 'react-native-vector-icons/FontAwesome';
 
-import MusicFiles from 'react-native-get-music-files';
-
 import Slider from 'react-native-slider';
 
 import moment from 'moment';
-import momentFormatter from 'moment-duration-format';
-
-import { check, PERMISSIONS, RESULTS } from 'react-native-permissions';
+require("moment-duration-format");
 
 let Sound = require('react-native-sound');
 Sound.setCategory('Playback');
@@ -35,28 +32,6 @@ function getTime(secs){
     else return moment.duration(seconds,'seconds').format('HH:mm:ss', {trim: false});
 };
 
-async function RequestStoragePermission() {
-    try {
-        const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            {
-                title: 'External Storage Permission',
-                message: 'This app needs access to your storage',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-            },
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Permission granted');
-        } else {
-            console.log('Permission denied');
-        }
-    } catch (err) {
-        console.warn(err);
-    }
-}
-
 class Bottom extends Component {
     constructor(props){
         super(props);
@@ -65,85 +40,17 @@ class Bottom extends Component {
     }
 
     componentDidMount(){
-        this.checkStoragePermission();
-    }
-
-    componentDidUpdate(){
-        this.props.onUpdate(state.record.tracks, state.currentTrack.trackIndex);
-    }
-
-    checkStoragePermission = () => {
-        check(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE)
-            .then(result => {
-                switch (result) {
-                    case RESULTS.UNAVAILABLE:
-                        console.log('This feature is not available (on this device / in this context)');
-                        break;
-                    case RESULTS.DENIED:
-                        console.log('The permission has not been requested / is denied but requestable');
-                        RequestStoragePermission();
-                        break;
-                    case RESULTS.GRANTED:
-                        console.log('The permission is granted');
-                        this._gettingAllMusicFiles();
-                        break;
-                    case RESULTS.BLOCKED:
-                        console.log('The permission is denied and not request able anymore');
-                        break;
-                }
-            })
-            .catch(error => {
-                console.log('There is some error in requesting permission', error)
-            });
-    };
-
-    _gettingAllMusicFiles = () => {
-        MusicFiles.getAll({})
-            .then(tracks => {
-                if (tracks && tracks.length > 0) {
-                    this._assortDataPath(tracks);
-                } else {
-                    alert('Hah! No tracks found on this device.');
-                }
-            })
-            .catch(error => {
-                console.log(error);
-                alert('Something went wrong while getting Music Files');
-            });
-    };
-
-    _assortDataPath = (array) => {
-        let tracks = [];
-
-        array.map(it => {
-            let x = it.path;
-            let directoryPath = x.split('/');
-
-            let spaces = 0;
-            let address = '';
-            let file_name = it.fileName;
-            let title = it.title;
-            let album = it.album;
-            let duration = it.duration;
-
-            while (spaces !== directoryPath.length - 1) {
-                if (directoryPath[spaces].length > 0) {
-                    address = address + '/' + directoryPath[spaces];
-                }
-                spaces += 1;
-            }
-            let obj = {
-                title: title,
-                album: album,
-                duration: duration,
-                filename: file_name,
-                address: address,
-            };
-            tracks.push(obj);
-        });
-        state.record = {tracks:tracks, currentTrack:0, total:tracks.length - 1};
+        state.record = this.props.record;
         this._loadTrack(0);
-    };
+    }
+
+    componentWillReceiveProps(nextProps){
+        const { player } = state.currentTrack;
+        if(state.playingIndex !== nextProps.pIndex.id){
+            player.release();
+            this._loadTrack$Play(nextProps.pIndex.id);
+        }
+    }
 
     _loadTrack = (trackIndex) => {
         const { tracks } = state.record;
@@ -154,13 +61,16 @@ class Bottom extends Component {
                 return;
             }
             state.currentTrack = { player:player, trackIndex:trackIndex };
+
             this._resetSlider();
+            // callBack$Main(trackIndex);
             // this._animate();
         });
     };
 
     _loadTrack$Play = (trackIndex) => {
         const { tracks } = state.record;
+        const { callBack$Bottom } = this.props;
         let player = new Sound(tracks[trackIndex].filename, tracks[trackIndex].address, error => {
             if (error) {
                 console.log('Failed to load track', error);
@@ -170,6 +80,7 @@ class Bottom extends Component {
             state.currentTrack = { player:player, trackIndex:trackIndex };
             this._resetSlider();
             this._play(trackIndex);
+            callBack$Bottom(trackIndex);
             // this._animate();
         });
     };
@@ -311,9 +222,8 @@ class Bottom extends Component {
                         value={state.slider.currentValue}
                         minimumTrackTintColor="#000000"
                         maximumTrackTintColor="#f50049"
-                        thumbTintColo   r="#fff"
+                        thumbTintColor="#fff"
                     />
-
                 </View>
 
                 <View style={styles.containerRunningTime}>
@@ -326,7 +236,7 @@ class Bottom extends Component {
                 </View>
 
                 <View style={{ flex:1, flexDirection:'column', justifyContent:'flex-end', alignContent:'center', width:300}}>
-                    <Text style={styles.trackName}>{_track_name}</Text>
+                    <Text style={styles.trackName} numberOfLines={1}>{_track_name}</Text>
                     <Animated.Text numberOfLines={1} style={[styles.artistName, {transform:[{translateX:this.marqueeText.x}]}]}>{_album_name}</Animated.Text>
                 </View>
 

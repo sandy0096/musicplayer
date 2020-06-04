@@ -22,13 +22,13 @@ class Top extends Component {
 
     render(){
         const { imageUrl } = state;
-        const { navigation, tracks, pIndex } = this.props;
+        const { navigation, record, pIndex } = this.props;
         return(
             <View style={styles.container}>
                 <ImageBackground source={ imageUrl } style={styles.image}>
                     <View style={styles.topIconContainer}>
                         <IconEntypo name={'magnifying-glass'} size={35} color="#fcfaff" style={{ margin: 10}}/>
-                        <TouchableOpacity onPress={() => navigation.navigate('Playlist', { tracks:tracks, pIndex:pIndex })}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Playlist')}>
                             <IconEntypo name={'menu'} size={35} color="#fcfaff" style={{ margin: 10}}/>
                         </TouchableOpacity>
                     </View>
