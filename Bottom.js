@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, ImageBackground, PermissionsAndroid, TouchableOpacity, Animated } from 'react-native';
+import { Text, View, ImageBackground, PermissionsAndroid, TouchableOpacity, Animated, ToastAndroid } from 'react-native';
 
 import styles from './Styles';
 
@@ -127,8 +127,12 @@ class Bottom extends Component {
             state.time = {elapsed:elapsed_time, max_duration:max_time};
         });
 
-        if(seconds >= maxDuration){
+        if(seconds >= maxDuration && !state.loop){
             this._ascendIndex(trackIndex);
+        }
+        else if(seconds >= maxDuration && state.loop){
+            this._resetSlider();
+            this._onSliderPlay();
         }
         else {
             seconds += 1;
@@ -138,7 +142,7 @@ class Bottom extends Component {
 
     __checkIndexExistence = (index) => {
         const { total } = state.record;
-        if(index > total || index <= 0){
+        if(index >= total || index <= 0){
             return false;
         }
         else return true;
@@ -147,13 +151,19 @@ class Bottom extends Component {
     _descendIndex = (trackIndex) => {
         const { total } = state.record;
         const { player } = state.currentTrack;
-        trackIndex -= 1;
+        const { shuffle } = state;
+        if(shuffle){
+            trackIndex = this._shuffler();
+        }
+        else{
+            trackIndex -= 1;
+        }
         player.release();
         if(this.__checkIndexExistence(trackIndex)){
             this._loadTrack$Play(trackIndex);
         }
         else{
-            this._loadTrack$Play(total);
+            this._loadTrack$Play(total - 1);
         }
     };
 
@@ -171,13 +181,46 @@ class Bottom extends Component {
 
     _ascendIndex = (trackIndex) => {
         const { player } = state.currentTrack;
-        trackIndex += 1;
+        const { shuffle } = state;
+
+        if(shuffle){
+            trackIndex = this._shuffler();
+        }
+        else{
+            trackIndex += 1;
+        }
+
         player.release();
         if(this.__checkIndexExistence(trackIndex)){
             this._loadTrack$Play(trackIndex);
         }
         else{
             this._loadTrack$Play(0);
+        }
+    };
+
+    _toggleShuffle = () => {
+        const { shuffle } = state;
+        state.shuffle = !state.shuffle;
+        if(shuffle) ToastAndroid.showWithGravityAndOffset('Shuffle On', ToastAndroid.SHORT, ToastAndroid.BOTTOM, 0, 50);
+        else ToastAndroid.showWithGravityAndOffset('Shuffle Off', ToastAndroid.SHORT, ToastAndroid.BOTTOM, 0 , 50);
+    };
+
+    _shuffler = () => {
+        const { total } = state.record;
+        return Math.floor(Math.random() * total);
+    };
+
+    _toggleLoop = () => {
+        const { player } = state.currentTrack;
+        state.loop = !state.loop;
+        if(state.loop){
+            player.setNumberOfLoops(-1);
+            ToastAndroid.showWithGravityAndOffset('Loop On', ToastAndroid.SHORT, ToastAndroid.BOTTOM, 0, 50);
+        }
+        else{
+            player.setNumberOfLoops(0);
+            ToastAndroid.showWithGravityAndOffset('Loop Off', ToastAndroid.SHORT, ToastAndroid.BOTTOM, 0 , 50);
         }
     };
 
@@ -241,7 +284,9 @@ class Bottom extends Component {
                 </View>
 
                 <View style={styles.controllerBox}>
-                    <IconSimpleLineIcons size={25} name={'loop'} color='#5d4e62'/>
+                    <TouchableOpacity onPress={() => this._toggleLoop()}>
+                        <IconSimpleLineIcons size={25} name={'loop'} color='#5d4e62'/>
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => this._descendIndex(trackIndex)}>
                         <IconFontAwesome size={35} name={'step-backward'} color='#4e5988'/>
                     </TouchableOpacity>
@@ -251,7 +296,9 @@ class Bottom extends Component {
                     <TouchableOpacity onPress={() => this._ascendIndex(trackIndex)}>
                         <IconFontAwesome size={35} name={'step-forward'} color='#4e5988'/>
                     </TouchableOpacity>
-                    <IconSimpleLineIcons size={25} name={'shuffle'} color='#5d4e62'/>
+                    <TouchableOpacity onPress={() => this._toggleShuffle()}>
+                        <IconSimpleLineIcons size={25} name={'shuffle'} color='#5d4e62'/>
+                    </TouchableOpacity>
                 </View>
             </View>
         );
