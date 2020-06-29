@@ -7,6 +7,7 @@ import { observable } from "mobx";
 
 import IconEntypo from 'react-native-vector-icons/Entypo';
 
+
 import AlbumArt from 'album-art';
 
 const state = observable({
@@ -15,6 +16,7 @@ const state = observable({
 });
 
 class Top extends Component {
+
     componentDidMount(){
 
         // AlbumArt('Linkin Park').then(x => state.imageUrl = {uri: x.toString()});

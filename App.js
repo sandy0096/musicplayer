@@ -68,6 +68,8 @@ const App: () => React$Node = () => {
             );
             if (granted === PermissionsAndroid.RESULTS.GRANTED) {
                 console.log('Permission granted');
+                checkStoragePermission();
+
             } else {
                 console.log('Permission denied');
             }
@@ -104,7 +106,7 @@ const App: () => React$Node = () => {
     const gettingAllMusicFiles = () => {
         MusicFiles.getAll({})
             .then(tracks => {
-                if (tracks && tracks.length > 0) {
+                if (Array.isArray(tracks)){
                     assortDataPath(tracks);
                 } else {
                     alert('Hah! No tracks found on this device.');

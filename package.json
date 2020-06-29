@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/masked-view": "^0.1.9",
+    "@react-native-community/push-notification-ios": "^1.2.2",
     "@react-navigation/bottom-tabs": "^5.2.7",
     "@react-navigation/material-top-tabs": "^5.1.15",
     "@react-navigation/native": "^5.1.6",
@@ -26,6 +27,7 @@
     "react-native-gesture-handler": "^1.6.1",
     "react-native-get-music-files": "^2.1.0",
     "react-native-permissions": "^2.1.0",
+    "react-native-push-notification": "3.1.1",
     "react-native-reanimated": "^1.8.0",
     "react-native-safe-area-context": "^0.7.3",
     "react-native-screens": "^2.5.0",
