@@ -9,6 +9,7 @@ import IconEntypo from 'react-native-vector-icons/Entypo';
 
 
 import AlbumArt from 'album-art';
+import NotificationService from "./NotificationService";
 
 const state = observable({
     data:[],
@@ -16,10 +17,52 @@ const state = observable({
 });
 
 class Top extends Component {
+    constructor(props){
+        super(props);
+        this.notification = new NotificationService(this.onNotification);
+    }
 
     componentDidMount(){
 
         // AlbumArt('Linkin Park').then(x => state.imageUrl = {uri: x.toString()});
+        const { record, pIndex } = this.props;
+        let id = pIndex.id;
+        this.notification.localNotification({
+            message:record.tracks[id].title?record.tracks[id].title:'Title Not Found',
+            subText:'Now playing',
+            autoCancel:false,
+            ignoreInForeground:true,
+            invokeApp: true,
+            playSound: false,
+            showWhen:false,
+        });
+
+    }
+
+    componentWillReceiveProps(nextProps){
+
+        if(JSON.stringify(this.props.pIndex!==JSON.stringify(nextProps.pIndex))){
+            const { record, pIndex } = nextProps;
+            let id = pIndex.id;
+            this.notification.localNotification({
+                message:record.tracks[id].title?record.tracks[id].title:'Title Not Found',
+                subText:'Now playing',
+                autoCancel:false,
+                ignoreInForeground:true,
+                invokeApp: true,
+                playSound: false,
+                showWhen:false,
+            });
+        }
+
+    }
+
+    onNotification = (notif) => {{
+        console.log('Notification Action will be here', notif);
+    }};
+
+    componentWillUnmount(){
+        this.notification.cancelAll()
     }
 
     render(){

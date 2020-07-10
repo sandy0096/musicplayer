@@ -13,12 +13,12 @@ export default class NotificationService {
 
             // IOS ONLY (optional): default: all - Permissions to register.
             permissions: {
-                alert: true,
+                alert: false,
                 badge: true,
-                sound: true
+                sound: false
             },
 
-            popInitialNotification: true,
+            popInitialNotification: false,
         });
     }
 
